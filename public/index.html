@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÉLAN – Женская одежда</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/img/logo.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModalBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            
+            <div class="modal-logo">ÉLAN</div>
+            <h2 class="modal-title">О нас</h2>
+            
+            <p class="modal-desc">
+                ÉLAN – одежда для повседневной жизни и особых случаев. Мы соединяем лаконичные силуэты, спокойные оттенки и выразительные детали, чтобы в каждом образе оставалось место вашей индивидуальности.
+            </p>
+
+            <div class="modal-stats">
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">лет</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1 000</div>
+                    <div class="stat-label">клиентов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">городов</div>
+                </div>
+            </div>
+
+            <button class="btn-modal-close" id="closeModalFooterBtn">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-left">
+            <a href="catalog.html" class="link">КАТАЛОГ</a>
+            <a href="#" class="link" id="openAboutBtn">О НАС</a>
+            <a href="contacts.html" class="link">КОНТАКТЫ</a>
+        </div>
+        <div class="header-center">
+            <a href="index.html" class="logo">ÉLAN</a>
+        </div>
+        <div class="header-right">
+            <a href="favorites.html" class="icon-link" title="Избранное">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </a>
+            <a href="profile.html" class="icon-link" title="Профиль">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <a href="cart.html" class="icon-link" title="Корзина">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </a>
+        </div>
+    </header>
+
+    <section class="fon-start">
+        <div class="fon-start-text">
+            <h1>СТИЛЬНАЯ ОДЕЖДА ДЛЯ ПОВСЕДНЕВНОЙ ЖИЗНИ И ОСОБЫХ СЛУЧАЕВ</h1>
+            <a href="catalog.html" class="btn1">ПЕРЕЙТИ В КАТАЛОГ</a>
+        </div>
+    </section>
+
+    <section class="block1" id="catalog">
+        <h2 class="title1">КАТАЛОГ ЖЕНСКОЙ ОДЕЖДЫ</h2>
+        <div class="cat-menu">
+            <a href="catalog.html?cat=Верхняя одежда" class="cat-btn">ВЕРХНЯЯ ОДЕЖДА</a>
+            <a href="catalog.html?cat=Юбки" class="cat-btn">ЮБКИ</a>
+            <a href="catalog.html?cat=Комбинезоны" class="cat-btn">КОМБИНЕЗОНЫ</a>
+            <a href="catalog.html?cat=Платья" class="cat-btn">ПЛАТЬЯ</a>
+            <a href="catalog.html?cat=Костюмы" class="cat-btn">КОСТЮМЫ</a>
+            <a href="catalog.html?cat=Брюки" class="cat-btn">БРЮКИ</a>
+            <a href="catalog.html?cat=Корсеты" class="cat-btn">КОРСЕТЫ</a>
+            <a href="catalog.html?cat=Блузки" class="cat-btn">БЛУЗКИ | РУБАШКИ</a>
+            <a href="catalog.html?cat=Боди" class="cat-btn">БОДИ</a>
+        </div>
+    </section>
+
+    <section class="block2">
+        <h2 class="title2">ТРЕНДЫ СЕЗОНА</h2>
+        <div class="trends-grid">
+            
+            <div class="card1">
+                <div class="card1-img">
+                    <img src="/img/платье.png" alt="Платье">
+                    <button class="heart" data-id="1">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A7267" stroke-width="1.5">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <div class="card1-info">
+                        <p class="card1-name">Платье мини со съемной меховой отделкой</p>
+                        <p class="card1-price">9 999 ₽</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card1">
+                <div class="card1-img">
+                    <img src="/img/костюм.png" alt="Костюм">
+                    <button class="heart" data-id="2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A7267" stroke-width="1.5">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>  
+                    <div class="card1-info">
+                        <p class="card1-name">Костюм брюки и кардиган с шерстью</p>
+                        <p class="card1-price">10 999 ₽</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card1">
+                <div class="card1-img">
+                    <img src="/img/комбенизон.png" alt="КОМБИНЕЗОН">
+                    <button class="heart" data-id="3">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A7267" stroke-width="1.5">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>  
+                    <div class="card1-info">
+                        <p class="card1-name">Комбинезон с ремнем женский</p>
+                        <p class="card1-price">10 999 ₽</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card1">
+                <div class="card1-img">
+                    <img src="/img/жакет.png" alt="Жакет">
+                    <button class="heart" data-id="4">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A7267" stroke-width="1.5">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>  
+                    <div class="card1-info">
+                        <p class="card1-name">Платье-жакет со съемным меховым воротником</p>
+                        <p class="card1-price">13 999 ₽</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="block3">
+        <h2 class="title3">ПОЧЕМУ ВЫБИРАЮТ ÉLAN</h2>
+        <div class="features-grid">
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                </div>
+                <h3 class="feature-title">БЫСТРАЯ ДОСТАВКА</h3>
+                <p class="feature-text">Быстрая доставка в течение 1-3 дней после оформления заказа.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.2"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 9v7a2 2 0 0 1-2 2H4"></path></svg>
+                </div>
+                <h3 class="feature-title">ОБМЕН И ВОЗВРАТ</h3>
+                <p class="feature-text">Простой процесс возврата или обмена товара.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                </div>
+                <h3 class="feature-title">КАЧЕСТВО И НАТУРАЛЬНЫЕ ТКАНИ</h3>
+                <p class="feature-text">Высокое качество и натуральные материалы.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h3 class="feature-title">ПОДДЕРЖКА КЛИЕНТОВ</h3>
+                <p class="feature-text">Надежная поддержка клиентов на всех этапах.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="footer" id="contacts">
+        <div class="footer-content">
+            <div class="footer-col1">
+                <p class="footer-logo">ÉLAN</p>
+                <p class="footer-desc">Стильная одежда для повседневной жизни и особых случаев.</p>
+            </div>
+            <div class="footer-col">
+                <p class="footer-title">МАГАЗИН</p>
+                <a href="catalog.html" class="footer-link">Каталог</a>
+                <a href="checkout.html" class="footer-link">Оформление заказа</a>
+                <a href="favorites.html" class="footer-link">Избранное</a>
+                <a href="cart.html" class="footer-link">Корзина</a>
+            </div>
+            <div class="footer-col">
+                <p class="footer-title">КОМПАНИЯ</p>
+                <a href="index.html" class="footer-link">О нас</a>
+                <a href="contacts.html" class="footer-link">Контакты</a>
+                <a href="profile.html" class="footer-link">Профиль</a>
+                <a href="auth.html" class="footer-link">Вход</a>
+            </div>
+            <div class="footer-col">
+                <p class="footer-title">КОНТАКТЫ</p>
+                <a href="mailto:info@elan-store.ru" class="footer-link">info@elan-store.ru</a>
+                <a href="tel:+79994281573" class="footer-link">+7 (999) 428-15-73</a>
+                <p class="footer-link">Пн-Вс, 10:00–20:00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 ÉLAN. Все права защищены.</p>
+        </div>
+    </footer>
+
+<script src="app.js"></script>
+</body>
+</html>
