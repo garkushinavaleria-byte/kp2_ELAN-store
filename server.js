@@ -20,7 +20,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ================= РЕГИСТРАЦИЯ =================
+// ================= 1. ПОЛЬЗОВАТЕЛИ (users) =================
+
 app.post('/api/register', async (req, res) => {
     const { name, email, password } = req.body; 
     const login = name || (email ? email.split('@')[0] : 'user');
@@ -42,7 +43,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ================= ВХОД =================
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body; 
     try {
@@ -61,23 +61,113 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ================= ВЫХОД =================
 app.get('/api/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/index.html');
     });
 });
 
-// ================= ФОРМА ОБРАТНОЙ СВЯЗИ =================
+app.get('/api/me', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
+    try {
+        const result = await pool.query('SELECT id, login, email FROM users WHERE id = $1', [req.session.userId]);
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ================= 2. ТОВАРЫ (products) =================
+
+// Отдаем товары из БД, чтобы каталог работал динамически
+app.get('/api/products', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM products ORDER BY id');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ================= 3. ИЗБРАННОЕ (favorites) =================
+
+app.post('/api/favorites', async (req, res) => {
+    const { productId } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' });
+
+    try {
+        const check = await pool.query('SELECT * FROM favorites WHERE user_id = $1 AND product_id = $2', [userId, productId]);
+        if (check.rows.length > 0) {
+            await pool.query('DELETE FROM favorites WHERE user_id = $1 AND product_id = $2', [userId, productId]);
+            res.json({ status: 'removed' });
+        } else {
+            await pool.query('INSERT INTO favorites (user_id, product_id) VALUES ($1, $2)', [userId, productId]);
+            res.json({ status: 'added' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Получить список избранного пользователя
+app.get('/api/favorites', async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' });
+
+    try {
+        const result = await pool.query(
+            'SELECT p.* FROM products p JOIN favorites f ON p.id = f.product_id WHERE f.user_id = $1', 
+            [userId]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ================= 4. ЗАКАЗЫ (orders, order_items) =================
+
+app.post('/api/orders', async (req, res) => {
+    const { items, totalPrice, address, phone } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' });
+
+    try {
+        // Создаем заказ
+        const orderResult = await pool.query(
+            'INSERT INTO orders (user_id, total_price, delivery_address, phone) VALUES ($1, $2, $3, $4) RETURNING id',
+            [userId, totalPrice, address, phone]
+        );
+        const orderId = orderResult.rows[0].id;
+
+        // Сохраняем товары в заказе
+        for (let item of items) {
+            await pool.query(
+                'INSERT INTO order_items (order_id, product_id, size, quantity, price_at_purchase) VALUES ($1, $2, $3, $4, $5)',
+                [orderId, item.id, item.size, item.quantity, item.price]
+            );
+        }
+
+        res.status(200).json({ success: true, orderId: orderId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка сервера при создании заказа' });
+    }
+});
+
+// ================= 5. ОБРАТНАЯ СВЯЗЬ (feedback) =================
+
 app.post('/api/feedback', async (req, res) => {
     const { name, email, message } = req.body; 
     const userId = req.session.userId;
     
-    // Если хотите, чтобы форма работала только для авторизованных, оставьте эту проверку.
-    // Если хотите, чтобы любой мог написать — удалите эти 3 строки.
-    if (!userId) {
-        return res.status(401).json({ error: 'Не авторизован' });
-    }
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' });
 
     try {
         await pool.query(
@@ -91,51 +181,7 @@ app.post('/api/feedback', async (req, res) => {
     }
 });
 
-// ================= ОФОРМЛЕНИЕ ЗАКАЗА =================
-app.post('/api/orders', async (req, res) => {
-    const { items, totalPrice, address, phone } = req.body;
-    const userId = req.session.userId;
-
-    if (!userId) {
-        return res.status(401).json({ error: 'Не авторизован' });
-    }
-
-    try {
-        // 1. Создаем сам заказ
-        const orderResult = await pool.query(
-            'INSERT INTO orders (user_id, total_price, delivery_address, phone) VALUES ($1, $2, $3, $4) RETURNING id',
-            [userId, totalPrice, address, phone]
-        );
-        const orderId = orderResult.rows[0].id;
-
-        // 2. Записываем товары в заказ
-        for (let item of items) {
-            await pool.query(
-                'INSERT INTO order_items (order_id, product_id, size, quantity, price_at_purchase) VALUES ($1, $2, $3, $4, $5)',
-                [orderId, item.id, item.size, item.quantity, item.price]
-            );
-        }
-
-        res.status(200).json({ success: true, orderId: orderId });
-    } catch (err) {
-        console.error("Ошибка при создании заказа:", err);
-        res.status(500).json({ error: 'Ошибка сервера при создании заказа' });
-    }
-});
-
-// ================= ПРОФИЛЬ =================
-app.get('/api/me', async (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ error: 'Не авторизован' });
-    }
-    try {
-        const result = await pool.query('SELECT id, login, email FROM users WHERE id = $1', [req.session.userId]);
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
-});
-
+// ================= ЗАПУСК СЕРВЕРА =================
 app.listen(PORT, () => {
     console.log(`server start http://localhost:${PORT}`);
 });
