@@ -13,40 +13,59 @@ document.addEventListener("DOMContentLoaded", () => {
         '9': { title: 'Топ-корсет с вискозой', price: 7599, color: 'Серый', image: '/img/топ.png', rating: 5 }
     };
 
+    // Корзина остается в localStorage, а вот Избранное - в БД
     const getCart = () => JSON.parse(localStorage.getItem('cart')) || [];
     const saveCart = (cart) => localStorage.setItem('cart', JSON.stringify(cart));
-    const getFavs = () => JSON.parse(localStorage.getItem('favorites')) || [];
-    const saveFavs = (favs) => localStorage.setItem('favorites', JSON.stringify(favs));
 
-    // ================= ИЗБРАННОЕ =================
-    const initHearts = () => {
+    // ================= ИЗБРАННОЕ (БД) =================
+    const initHearts = async () => {
         const hearts = document.querySelectorAll('.heart, .fav-btn');
         if (hearts.length === 0) return;
-        const currentFavs = getFavs();
+
+        let serverFavs = [];
+        try {
+            const res = await fetch('/api/favorites');
+            if (res.ok) serverFavs = await res.json();
+        } catch (e) { console.error(e); }
         
+        const favIds = serverFavs.map(f => f.id.toString());
+
         hearts.forEach(btn => {
             const id = btn.getAttribute('data-id');
-            if (id && currentFavs.includes(id)) btn.classList.add('active');
+            if (id && favIds.includes(id)) btn.classList.add('active');
 
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
 
-            newBtn.addEventListener('click', function(e) {
+            newBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const id = this.getAttribute('data-id');
                 if (!id) return;
 
-                let favs = getFavs();
-                if (favs.includes(id)) {
-                    favs = favs.filter(item => item !== id);
-                    this.classList.remove('active');
-                } else {
-                    favs.push(id);
-                    this.classList.add('active');
+                try {
+                    const response = await fetch('/api/favorites', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId: parseInt(id) })
+                    });
+
+                    if (response.status === 401) {
+                        alert('Войдите в аккаунт, чтобы добавлять в избранное!');
+                        window.location.href = 'auth.html';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    if (data.status === 'added') {
+                        this.classList.add('active');
+                    } else {
+                        this.classList.remove('active');
+                    }
+                    if (document.getElementById('favorites-grid')) renderFavoritesPage();
+                } catch (err) {
+                    console.error(err);
                 }
-                saveFavs(favs);
-                if (document.getElementById('favorites-grid')) renderFavoritesPage();
             });
         });
     };
@@ -139,29 +158,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // ================= СТРАНИЦА ИЗБРАННОГО =================
-    const renderFavoritesPage = () => {
+    // ================= СТРАНИЦА ИЗБРАННОГО (БД) =================
+    const renderFavoritesPage = async () => {
         const grid = document.getElementById('favorites-grid');
         if (!grid) return;
-        const favs = getFavs();
+        
+        let serverFavs = [];
+        try {
+            const res = await fetch('/api/favorites');
+            if (res.ok) serverFavs = await res.json();
+        } catch (e) { console.error(e); }
+
         grid.innerHTML = '';
 
-        if (favs.length === 0) {
+        if (serverFavs.length === 0) {
             grid.innerHTML = `<p style="font-family: 'Cormorant Garamond'; font-size: 20px; color: #888; grid-column: 1 / -1;">В вашем избранном пока пусто.</p>`;
             return;
         }
 
-        favs.forEach(id => {
-            const p = productsDB[id];
-            if (!p) return;
+        serverFavs.forEach(p => {
             grid.innerHTML += `
                 <div class="product-card">
                     <div class="image-wrapper">
-                        <a href="product.html?id=${id}"><img src="${p.image}" alt="${p.title}"></a>
-                        <button class="fav-btn active" data-id="${id}"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
+                        <a href="product.html?id=${p.id}"><img src="${p.image_url}" alt="${p.title}"></a>
+                        <button class="fav-btn active" data-id="${p.id}"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
                     </div>
                     <div class="product-info">
-                        <a href="product.html?id=${id}" style="text-decoration: none; color: inherit;">
+                        <a href="product.html?id=${p.id}" style="text-decoration: none; color: inherit;">
                             <div class="product-title">${p.title}</div>
                             <div class="product-price">${p.price.toLocaleString('ru-RU')} ₽</div>
                             <div class="product-color">${p.color}</div>
@@ -208,39 +231,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 addBtn.textContent = "ДОБАВЛЕНО ✓";
                 setTimeout(() => addBtn.textContent = "В КОРЗИНУ", 1500);
             });
-
-            const favBtn = document.getElementById('to-fav-btn');
-            const note = document.getElementById('product-note');
-
-            if (favBtn && note) {
-                const updateFavStatus = () => {
-                    const favs = getFavs();
-                    if (favs.includes(id)) {
-                        favBtn.textContent = "В ИЗБРАННОМ";
-                        favBtn.style.backgroundColor = "#998F7B";
-                        favBtn.style.color = "#fff";
-                        note.style.display = "block";
-                    } else {
-                        favBtn.textContent = "В ИЗБРАННОЕ";
-                        favBtn.style.backgroundColor = "transparent";
-                        favBtn.style.color = "#1C1C1C";
-                        note.style.display = "none";
-                    }
-                };
-
-                updateFavStatus();
-
-                favBtn.addEventListener('click', () => {
-                    let favs = getFavs();
-                    if (favs.includes(id)) {
-                        favs = favs.filter(item => item !== id);
-                    } else {
-                        favs.push(id);
-                    }
-                    saveFavs(favs);
-                    updateFavStatus();
-                });
-            }
         }
     };
 
@@ -311,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCart();
     };
 
-    // ================= ОФОРМЛЕНИЕ ЗАКАЗА =================
+    // ================= ОФОРМЛЕНИЕ ЗАКАЗА (БД) =================
     const initCheckoutPage = () => {
         const itemsContainer = document.getElementById('checkout-items');
         if (!itemsContainer) return;
@@ -404,14 +394,37 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        function completeOrder() {
-            localStorage.removeItem('cart');
-            alert("Спасибо! Ваш заказ успешно оформлен. Мы свяжемся с вами в ближайшее время.");
-            window.location.href = "index.html";
+        async function completeOrder() {
+            const address = document.getElementById('chk-address').value;
+            const phone = document.getElementById('chk-phone').value;
+            const finalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 500;
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: cart,
+                        totalPrice: finalPrice,
+                        address: address,
+                        phone: phone
+                    })
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('cart');
+                    alert("Спасибо! Заказ сохранен в базе данных.");
+                    window.location.href = "index.html";
+                } else {
+                    alert("Ошибка при оформлении. Войдите в аккаунт.");
+                }
+            } catch (err) {
+                alert("Ошибка сервера.");
+            }
         }
     };
 
-     // ================= АВТОРИЗАЦИЯ И ПРОФИЛЬ =================
+    // ================= АВТОРИЗАЦИЯ И ПРОФИЛЬ =================
     const initProfileAndAuth = () => {
         const authForm = document.getElementById('auth-form');
         
@@ -465,10 +478,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(user => {
                     profileTitle.textContent = "ЛИЧНЫЙ КАБИНЕТ";
-                    
                     const sub = document.getElementById('profile-subtitle');
                     if (sub) sub.textContent = user.login;
-                    
                     const txt = document.getElementById('profile-text');
                     if (txt) txt.textContent = `Вы вошли как ${user.email}.`;
                     
@@ -486,17 +497,22 @@ document.addEventListener("DOMContentLoaded", () => {
                         loginBtn.href = "/api/logout";
                     }
                 })
-                .catch(() => {
-                });
+                .catch(() => {});
         }
 
+        // Счетчики для профиля
         const cartCountEl = document.getElementById('profile-cart-count');
         const favCountEl = document.getElementById('profile-fav-count');
         if (cartCountEl) {
             let count = 0; getCart().forEach(i => count += i.quantity);
             cartCountEl.textContent = count;
         }
-        if (favCountEl) favCountEl.textContent = getFavs().length;
+        if (favCountEl) {
+            fetch('/api/favorites')
+                .then(res => res.ok ? res.json() : [])
+                .then(favs => favCountEl.textContent = favs.length)
+                .catch(() => favCountEl.textContent = '0');
+        }
     };
     
     // ================= МОДАЛЬНОЕ ОКНО =================
@@ -529,45 +545,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-        // ================= ОБРАТНАЯ СВЯЗЬ =================
-        const initContactsForm = () => {
+    // ================= ОБРАТНАЯ СВЯЗЬ =================
+    const initContactsForm = () => {
         const sendBtn = document.getElementById('send-contact-btn');
-            if (!sendBtn) return;
+        if (!sendBtn) return;
 
-            sendBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('contact-name').value.trim();
-                const email = document.getElementById('contact-email').value.trim();
-                const message = document.getElementById('contact-message').value.trim();
+        sendBtn.addEventListener('click', async () => {
+            const name = document.getElementById('contact-name').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
 
-                if (!name || !email || !message) {
-                    alert("Пожалуйста, заполните все поля формы.");
-                    return;
-                }
+            if (!name || !email || !message) {
+                alert("Пожалуйста, заполните все поля.");
+                return;
+            }
 
-                try {
-                    // Отправляем данные на сервер
-                    const response = await fetch('/api/feedback', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: name, email: email, message: message })
-                    });
+            try {
+                const response = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
 
-                    if (response.redirected) {
-                        window.location.href = response.url; // Если сервер перекинул на авторизацию
-                        return;
-                    }
-
-                    alert("Спасибо! Ваше сообщение отправлено. Мы свяжемся с вами в ближайшее время.");
+                if (response.status === 401) {
+                    alert("Войдите в аккаунт, чтобы отправить сообщение!");
+                    window.location.href = "auth.html";
+                } else if (response.ok) {
+                    alert("Спасибо! Сообщение сохранено в базе.");
                     document.getElementById('contact-name').value = '';
                     document.getElementById('contact-email').value = '';
                     document.getElementById('contact-message').value = '';
-                } catch (err) {
-                    console.error(err);
-                    alert("Ошибка при отправке сообщения.");
                 }
-            });
-        };
+            } catch (err) {
+                alert("Ошибка сервера при отправке сообщения.");
+            }
+        });
+    };
 
     // ================= ЗАПУСК =================
     initHearts();
